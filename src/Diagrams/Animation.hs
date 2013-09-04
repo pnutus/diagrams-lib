@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -39,17 +40,18 @@ import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Types
 
 import           Data.Active
-import           Data.Semigroup
+import           Data.Active.Endpoint
 
 import           Control.Applicative       ((<$>))
 import           Data.Foldable             (foldMap)
+import           Data.Semigroup
 import           Data.VectorSpace
 
 -- | A value of type @QAnimation b v m@ is an animation (a
 --   time-varying diagram with start and end times) that can be
 --   rendered by backspace @b@, with vector space @v@ and monoidal
 --   annotations of type @m@.
-type QAnimation b v m = Active (QDiagram b v m)
+type QAnimation b v m = Active Free C C Time (QDiagram b v m)
 
 -- | A value of type @Animation b v@ is an animation (a time-varying
 --   diagram with start and end times) in vector space @v@ that can be

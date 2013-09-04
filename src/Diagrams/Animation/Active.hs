@@ -1,4 +1,6 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies      #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -----------------------------------------------------------------------------
@@ -37,15 +39,16 @@
 
 module Diagrams.Animation.Active where
 
-import           Control.Applicative (pure, (<$>))
+import           Control.Applicative  (pure, (<$>))
 
 import           Diagrams.Align
 import           Diagrams.Core
 import           Diagrams.TrailLike
 
 import           Data.Active
+import           Data.Active.Endpoint
 
-type instance V (Active a) = V a
+type instance V (Active f l r t a) = V a
 
 -- Yes, these are all orphan instances. Get over it.  We don't want to
 -- put them in the 'active' package because 'active' is supposed to be
@@ -53,17 +56,17 @@ type instance V (Active a) = V a
 -- rather not put them in diagrams-core so that diagrams-core doesn't
 -- have to depend on active.
 
-instance HasOrigin a => HasOrigin (Active a) where
+instance HasOrigin a => HasOrigin (Active f l r t a) where
   moveOriginTo = fmap . moveOriginTo
 
-instance Transformable a => Transformable (Active a) where
+instance Transformable a => Transformable (Active f l r t a) where
   transform = fmap . transform
 
-instance HasStyle a => HasStyle (Active a) where
+instance HasStyle a => HasStyle (Active f l r t a) where
   applyStyle = fmap . applyStyle
 
-instance TrailLike t => TrailLike (Active t) where
-  trailLike = pure . trailLike
+instance (TrailLike a, IsEraType f, Ord t) => TrailLike (Active f I I t a) where
+  trailLike = pureA . trailLike
 
 -- | An active value can be juxtaposed against another by doing the
 --   juxtaposition pointwise over time.  The era of @juxtapose v a1
@@ -72,29 +75,29 @@ instance TrailLike t => TrailLike (Active t) where
 --   v a1 a2@ and @liftA2 (juxtapose v) a1 a2@ therefore have
 --   different semantics: the second is an active value whose era is
 --   the /combination/ of the eras of @a1@ and @a2@).
-instance Juxtaposable a => Juxtaposable (Active a) where
+-- instance Juxtaposable a => Juxtaposable (Active a) where
 
-  juxtapose v a1 a2 =
-    onActive       -- a1
-      (\c1 ->        -- if a1 is constant, just juxtapose a2 pointwise with its value
-        juxtapose v c1 <$> a2
-      )
-                     -- if a1 is dynamic...
-      (onDynamic $ \s1 e1 d1 ->
-        onActive      -- a2
-          (\c2 ->      -- if a2 is constant, juxtapose pointwise with a1.  Since
-                       --   the result will no longer be constant, the result
-                       --   needs an era: we use a1's.
-            mkActive s1 e1 (\t -> juxtapose v (d1 t) c2)
-          )
+--   juxtapose v a1 a2 =
+--     onActive       -- a1
+--       (\c1 ->        -- if a1 is constant, just juxtapose a2 pointwise with its value
+--         juxtapose v c1 <$> a2
+--       )
+--                      -- if a1 is dynamic...
+--       (onDynamic $ \s1 e1 d1 ->
+--         onActive      -- a2
+--           (\c2 ->      -- if a2 is constant, juxtapose pointwise with a1.  Since
+--                        --   the result will no longer be constant, the result
+--                        --   needs an era: we use a1's.
+--             mkActive s1 e1 (\t -> juxtapose v (d1 t) c2)
+--           )
 
-                       -- otherwise, juxtapose pointwise, without changing a2's era
-          (onDynamic $ \s2 e2 d2 ->
-            mkActive s2 e2 (\t -> juxtapose v (d1 t) (d2 t))
-          )
-          a2
-      )
-      a1
+--                        -- otherwise, juxtapose pointwise, without changing a2's era
+--           (onDynamic $ \s2 e2 d2 ->
+--             mkActive s2 e2 (\t -> juxtapose v (d1 t) (d2 t))
+--           )
+--           a2
+--       )
+--       a1
 
 --instance Alignable a => Alignable (Active a) where
 --  alignBy v d a = alignBy v d <$> a
