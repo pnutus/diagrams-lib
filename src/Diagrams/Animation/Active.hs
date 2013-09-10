@@ -46,7 +46,6 @@ import           Diagrams.Core
 import           Diagrams.TrailLike
 
 import           Data.Active
-import           Data.Active.Endpoint
 
 type instance V (Active f l r t a) = V a
 
