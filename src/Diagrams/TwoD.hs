@@ -65,19 +65,19 @@ module Diagrams.TwoD
        , P2, p2, unp2
        , T2
        , unitX, unitY, unit_X, unit_Y
-       , direction, fromDirection, e
+       , direction, angleBetween, fromDirection, e
 
          -- * Angles
        , tau
        , Angle(..)
-       , Turn(..), CircleFrac, Rad(..), Deg(..)
-       , fullCircle, convertAngle
+       , Turn(..), asTurn, CircleFrac, Rad(..), asRad, Deg(..), asDeg
+       , fullTurn, fullCircle, convertAngle
 
          -- * Paths
          -- ** Stroking
        , stroke, stroke', strokeTrail, strokeT, strokeTrail', strokeT'
        , strokeLine, strokeLoop
-       , strokeLocT, strokeLocLine, strokeLocLoop
+       , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
        , FillRule(..), fillRule
        , StrokeOpts(..)
 
@@ -131,8 +131,11 @@ module Diagrams.TwoD
 
          -- ** Arrows
        , arrow, arrow'
+       , arrowAt, arrowAt'
+       , arrowBetween, arrowBetween'
        , connect, connect'
        , connectPerim, connectPerim'
+       , connectOutside, connectOutside'
        , straightShaft
        , module Diagrams.TwoD.Arrowheads
 

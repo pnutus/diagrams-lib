@@ -26,8 +26,8 @@ module Diagrams.TwoD.Types
 
          -- * Angles
        , Angle(..)
-       , Turn(..), CircleFrac, Rad(..), Deg(..)
-       , fullCircle, convertAngle
+       , Turn(..), asTurn, CircleFrac, Rad(..), asRad, Deg(..), asDeg
+       , fullTurn, fullCircle, convertAngle, angleRatio
        ) where
 
 import           Diagrams.Coordinates
@@ -102,7 +102,7 @@ instance Show R2 where
     showCoord x . showString " & " . showCoord y
    where
     showCoord c | c < 0     = showParen True (shows c)
-                | otherwise = shows x
+                | otherwise = shows c
 
 instance Read R2 where
   readsPrec d r = readParen (d > app_prec)
@@ -196,18 +196,42 @@ instance Transformable R2 where
 -- | Newtype wrapper used to represent angles as fractions of a
 --   circle.  For example, 1\/3 turn = tau\/3 radians = 120 degrees.
 newtype Turn = Turn { getTurn :: Double }
-  deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac)
+  deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac, AdditiveGroup)
+
+-- | The identity function with a restricted type, for conveniently
+-- declaring that some value should have type 'Turn'.  For example,
+-- @rotation . asTurn . fromRational@ constructs a rotation from a
+-- rational value considered as a @Turn@.  Without @asTurn@, the angle
+-- type would be ambiguous.
+asTurn :: Turn -> Turn
+asTurn = id
 
 -- | Deprecated synonym for 'Turn', retained for backwards compatibility.
 type CircleFrac = Turn
 
 -- | Newtype wrapper for representing angles in radians.
 newtype Rad = Rad { getRad :: Double }
-  deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
+  deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac, AdditiveGroup)
+
+-- | The identity function with a restricted type, for conveniently
+-- declaring that some value should have type 'Rad'.  For example,
+-- @rotation . asRad . fromRational@ constructs a rotation from a
+-- rational value considered as a value in radians.  Without @asRad@,
+-- the angle type would be ambiguous.
+asRad :: Rad -> Rad
+asRad = id
 
 -- | Newtype wrapper for representing angles in degrees.
 newtype Deg = Deg { getDeg :: Double }
-  deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac)
+  deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac, AdditiveGroup)
+
+-- | The identity function with a restricted type, for conveniently
+-- declaring that some value should have type 'Deg'.  For example,
+-- @rotation . asDeg . fromIntegral@ constructs a rotation from an
+-- integral value considered as a value in degrees.  Without @asDeg@,
+-- the angle type would be ambiguous.
+asDeg :: Deg -> Deg
+asDeg = id
 
 -- | Type class for types that measure angles.
 class Num a => Angle a where
@@ -242,3 +266,7 @@ fullCircle = fullTurn
 -- | Convert between two angle representations.
 convertAngle :: (Angle a, Angle b) => a -> b
 convertAngle = fromTurn . toTurn
+
+-- | Calculate ratio between two angles
+angleRatio :: Angle a => a -> a -> Double
+angleRatio a b = getTurn (toTurn a) / getTurn (toTurn b)
