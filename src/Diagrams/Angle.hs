@@ -25,6 +25,7 @@ module Diagrams.Angle
 
 import Control.Lens            (Iso', Lens', iso, review, (^.))
 
+import Data.Fixed              (mod')
 import Data.Monoid      hiding ((<>))
 import Data.Semigroup
 import Data.VectorSpace
@@ -65,6 +66,14 @@ deg = iso (\(Radians r) -> r/2/pi*360) (Radians . (*(2*pi/360)))
 -- | An angle representing one full turn.
 fullTurn :: Angle
 fullTurn = 1 @@ turn
+
+-- | A zero angle, useful for comparisons.
+zeroAngle :: Angle
+zeroAngle = mempty
+
+-- | Make @Angle@ be between 0 and 1 turn.
+normalizeAngle :: Angle -> Angle
+normalizeAngle angle = mod' (angle ^. rad) (2*pi) @@ rad
 
 -- | Deprecated synonym for 'fullTurn', retained for backwards compatibility.
 fullCircle :: Angle
